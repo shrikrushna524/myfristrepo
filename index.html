@@ -2,88 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Live Route Tracking</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-  <!-- Leaflet Routing Machine -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
-
-  <style>
-    body { margin: 0; }
-    #map { height: 100vh; width: 100%; }
-  </style>
+  <title>Live Location</title>
 </head>
 <body>
 
-<div id="map"></div>
+<h2>User Live Location</h2>
+<p id="location">Waiting for location...</p>
 
-<!-- JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-
-<script>
-  // 🎯 Destination (fixed)
-  const DESTINATION = L.latLng(20.932890, 77.752456);
-
-  let map, routingControl;
-
-  // 🔴 STEP 1: Ask for user location immediately
-  navigator.geolocation.getCurrentPosition(
-    position => {
-      const source = L.latLng(
-        position.coords.latitude,
-        position.coords.longitude
-      );
-
-      // 🔵 STEP 2: Create map after permission granted
-      map = L.map('map').setView(source, 15);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(map);
-
-      // 🛣 STEP 3: Draw shortest road path
-      routingControl = L.Routing.control({
-        waypoints: [source, DESTINATION],
-        addWaypoints: false,
-        draggableWaypoints: false,
-        routeWhileDragging: false,
-        show: false,
-        lineOptions: {
-          styles: [{ color: '#1E90FF', weight: 5 }]
-        }
-      }).addTo(map);
-
-      // 🟢 STEP 4: Start live tracking after permission
-      navigator.geolocation.watchPosition(
-        pos => {
-          const liveSource = L.latLng(
-            pos.coords.latitude,
-            pos.coords.longitude
-          );
-
-          routingControl.setWaypoints([liveSource, DESTINATION]);
-          map.panTo(liveSource);
-        },
-        err => alert("Live tracking stopped"),
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 5000
-        }
-      );
-    },
-    error => {
-      alert("Location permission is required to show route");
-    },
-    {
-      enableHighAccuracy: true
-    }
-  );
-</script>
-
+<script src="location.js"></script>
 </body>
 </html>
+t
