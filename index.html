@@ -1,15 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Live Location</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Live Tracker - Route to Destination</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100vw; }
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            width: 80%;
+        }
+    </style>
 </head>
 <body>
 
-<h2>User Live Location</h2>
-<p id="location">Waiting for location...</p>
+    <div class="info-panel">
+        <b>Live Tracking Active</b><br>
+        <small id="status">Waiting for GPS...</small>
+    </div>
 
-<script src="location.js"></script>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        // 1. SET YOUR FIXED DESTINATION HERE
+        const destLat = 20.927183; // Example: Pune, India
+        const destLng = 77.748732;
+
+        // Initialize Map
+        const map = L.map('map').setView([0, 0], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let userMarker, routingControl;
+
+        // 2. SUCCESS CALLBACK (Runs whenever location changes)
+        function success(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            document.getElementById('status').innerText = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+
+            // Update or Create User Marker
+            if (!userMarker) {
+                userMarker = L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
+                map.setView([lat, lng], 15);
+            } else {
+                userMarker.setLatLng([lat, lng]);
+            }
+
+            // Update or Create Route
+            if (routingControl) {
+                // Update the waypoints (Source is live, Destination is fixed)
+                routingControl.setWaypoints([
+                    L.latLng(lat, lng),
+                    L.latLng(destLat, destLng)
+                ]);
+            } else {
+                // Initialize Routing
+                routingControl = L.Routing.control({
+                    waypoints: [
+                        L.latLng(lat, lng),
+                        L.latLng(destLat, destLng)
+                    ],
+                    routeWhileDragging: false,
+                    addWaypoints: false, // Prevent user from adding points
+                    createMarker: function() { return null; } // We use our own markers
+                }).addTo(map);
+            }
+        }
+
+        // 3. ERROR CALLBACK
+        function error(err) {
+            console.error("GPS Error: ", err);
+            document.getElementById('status').innerText = "Please enable Location Services.";
+        }
+
+        // 4. START LIVE TRACKING
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(success, error, {
+                enableHighAccuracy: true, // Uses GPS instead of just Wifi
+                timeout: 5000,
+                maximumAge: 0
+            });
+        } else {
+            alert("Geolocation is not supported by your browser.");
+        }
+    </script>
 </body>
 </html>
-t
